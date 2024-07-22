@@ -22,6 +22,20 @@
           <CommentIcon class="h-4" />
         </template>
       </Button>
+      <!-- Add another button called "Call"
+      Clicking on it whould launch a tel:// link to launch phone call on mobile
+      and then toggle comment box -->
+      <Button
+        variant="ghost"
+        :label="__('Call')"
+        :class="[showCommentBox ? '!bg-gray-300 hover:!bg-gray-200' : '']"
+        @click="makeCall()"
+      >
+        <template #prefix>
+          <PhoneIcon class="h-4" />
+        </template>
+      </Button>
+
     </div>
   </div>
   <div
@@ -237,6 +251,15 @@ function toggleCommentBox() {
     showEmailBox.value = false
   }
   showCommentBox.value = !showCommentBox.value
+}
+
+function makeCall() {
+  if (showEmailBox.value) {
+    showEmailBox.value = false
+  }
+    showCommentBox.value = !showCommentBox.value
+    //   Open phone call link
+    window.open('tel://+1234567890', '_blank')
 }
 
 defineExpose({

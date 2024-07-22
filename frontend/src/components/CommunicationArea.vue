@@ -9,7 +9,7 @@
         @click="toggleEmailBox()"
       >
         <template #prefix>
-          <EmailIcon class="h-4" />
+          <Email2Icon class="h-4" />
         </template>
       </Button>
       <Button
@@ -37,18 +37,6 @@
         </template>
       </Button>
 
-    </div>
-    <div v-if="showEmailBox" class="flex gap-1.5">
-      <Button
-        :label="__('CC')"
-        @click="toggleCC()"
-        :class="[newEmailEditor.cc ? 'bg-gray-300 hover:bg-gray-200' : '']"
-      />
-      <Button
-        :label="__('BCC')"
-        @click="toggleBCC()"
-        :class="[newEmailEditor.bcc ? 'bg-gray-300 hover:bg-gray-200' : '']"
-      />
     </div>
   </div>
   <div
@@ -114,11 +102,11 @@
 import EmailEditor from '@/components/EmailEditor.vue'
 import CommentBox from '@/components/CommentBox.vue'
 import CommentIcon from '@/components/Icons/CommentIcon.vue'
-import EmailIcon from '@/components/Icons/EmailIcon.vue'
+import Email2Icon from '@/components/Icons/Email2Icon.vue'
 import { usersStore } from '@/stores/users'
 import { useStorage } from '@vueuse/core'
 import { call, createResource } from 'frappe-ui'
-import { ref, watch, computed, nextTick } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
   doctype: {
@@ -160,6 +148,7 @@ const signature = createResource({
 })
 
 function setSignature(editor) {
+  if (!signature.data) return
   signature.data = signature.data.replace(/\n/g, '<br>')
   let emailContent = editor.getHTML()
   emailContent = emailContent.startsWith('<p></p>')
@@ -249,22 +238,6 @@ async function submitComment() {
   newComment.value = ''
   reload.value = true
   emit('scroll')
-}
-
-function toggleCC() {
-  newEmailEditor.value.cc = !newEmailEditor.value.cc
-  newEmailEditor.value.cc &&
-    nextTick(() => {
-      newEmailEditor.value.ccInput.setFocus()
-    })
-}
-
-function toggleBCC() {
-  newEmailEditor.value.bcc = !newEmailEditor.value.bcc
-  newEmailEditor.value.bcc &&
-    nextTick(() => {
-      newEmailEditor.value.bccInput.setFocus()
-    })
 }
 
 function toggleEmailBox() {

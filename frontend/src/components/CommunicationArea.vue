@@ -102,6 +102,7 @@
 import EmailEditor from '@/components/EmailEditor.vue'
 import CommentBox from '@/components/CommentBox.vue'
 import CommentIcon from '@/components/Icons/CommentIcon.vue'
+import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
 import Email2Icon from '@/components/Icons/Email2Icon.vue'
 import { usersStore } from '@/stores/users'
 import { useStorage } from '@vueuse/core'
@@ -252,6 +253,16 @@ function toggleCommentBox() {
     showEmailBox.value = false
   }
   showCommentBox.value = !showCommentBox.value
+}
+
+function makeCall() {
+  if (showEmailBox.value) {
+    showEmailBox.value = false
+  }
+    showCommentBox.value = !showCommentBox.value
+
+    //   Add code to launch phone call here
+    window.open('tel://+1234567890', '_blank')
 }
 
 defineExpose({

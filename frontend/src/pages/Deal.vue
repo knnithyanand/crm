@@ -1,7 +1,11 @@
 <template>
   <LayoutHeader v-if="deal.data">
     <template #left-header>
-      <Breadcrumbs :items="breadcrumbs" />
+      <Breadcrumbs :items="breadcrumbs">
+        <template #prefix="{ item }">
+          <Icon v-if="item.icon" :icon="item.icon" class="mr-2 h-4" />
+        </template>
+      </Breadcrumbs>
     </template>
     <template #right-header>
       <CustomActions
@@ -14,7 +18,9 @@
           @click="showAssignmentModal = true"
         />
       </component>
-      <Dropdown :options="statusOptions('deal', updateField)">
+      <Dropdown
+        :options="statusOptions('deal', updateField, deal.data._customStatuses)"
+      >
         <template #default="{ open }">
           <Button
             :label="deal.data.status"
@@ -208,7 +214,7 @@
                             />
                           </div>
                           <div class="flex items-center">
-                            <Dropdown :options="contactOptions(contact.name)">
+                            <Dropdown :options="contactOptions(contact)">
                               <Button
                                 icon="more-horizontal"
                                 class="text-gray-600"
@@ -302,6 +308,7 @@
   />
 </template>
 <script setup>
+import Icon from '@/components/Icon.vue'
 import Resizer from '@/components/Resizer.vue'
 import LoadingIndicator from '@/components/Icons/LoadingIndicator.vue'
 import EditIcon from '@/components/Icons/EditIcon.vue'
@@ -334,9 +341,11 @@ import {
   createToast,
   setupAssignees,
   setupCustomActions,
+  setupCustomStatuses,
   errorMessage,
   copyToClipboard,
 } from '@/utils'
+import { getView } from '@/utils/view'
 import { globalStore } from '@/stores/global'
 import { organizationsStore } from '@/stores/organizations'
 import { statusesStore } from '@/stores/statuses'
@@ -353,12 +362,13 @@ import {
   usePageMeta,
 } from 'frappe-ui'
 import { ref, computed, h, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const { $dialog, makeCall } = globalStore()
 const { organizations, getOrganization } = organizationsStore()
 const { statusOptions, getDealStatus } = statusesStore()
 const { isManager } = usersStore()
+const route = useRoute()
 const router = useRouter()
 
 const props = defineProps({
@@ -373,8 +383,7 @@ const deal = createResource({
   params: { name: props.dealId },
   cache: ['deal', props.dealId],
   onSuccess: (data) => {
-    setupAssignees(data)
-    setupCustomActions(data, {
+    let obj = {
       doc: data,
       $dialog,
       router,
@@ -382,7 +391,10 @@ const deal = createResource({
       createToast,
       deleteDoc: deleteDeal,
       call,
-    })
+    }
+    setupAssignees(data)
+    setupCustomStatuses(data, obj)
+    setupCustomActions(data, obj)
   },
 })
 
@@ -452,6 +464,22 @@ function validateRequired(fieldname, value) {
 
 const breadcrumbs = computed(() => {
   let items = [{ label: __('Deals'), route: { name: 'Deals' } }]
+
+  if (route.query.view || route.query.viewType) {
+    let view = getView(route.query.view, route.query.viewType, 'CRM Deal')
+    if (view) {
+      items.push({
+        label: __(view.label),
+        icon: view.icon,
+        route: {
+          name: 'Deals',
+          params: { viewType: route.query.viewType },
+          query: { view: route.query.view },
+        },
+      })
+    }
+  }
+
   items.push({
     label: organization.value?.name || __('Untitled'),
     route: { name: 'Deal', params: { dealId: deal.data.name } },
@@ -544,9 +572,9 @@ const _contact = ref({})
 function contactOptions(contact) {
   let options = [
     {
-      label: __('Delete'),
+      label: __('Remove'),
       icon: 'trash-2',
-      onClick: () => removeContact(contact),
+      onClick: () => removeContact(contact.name),
     },
   ]
 
